@@ -1,0 +1,183 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>全国鉄道運行情報</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+  background:#eef2f7;
+  color:#172b40;
+}
+header{
+  background:#14283d;
+  color:white;
+  padding:24px 18px;
+}
+header h1{margin:0;font-size:24px}
+header p{color:#c8d5e2;font-size:13px}
+main{padding:16px;max-width:850px;margin:auto}
+.panel{
+  background:white;
+  padding:16px;
+  border-radius:13px;
+  margin-bottom:14px;
+}
+input,select,button{
+  width:100%;
+  padding:13px;
+  border-radius:8px;
+  border:1px solid #ccd5df;
+  font-size:15px;
+  margin-top:8px;
+  background:white;
+}
+button{
+  background:#1768a5;
+  color:white;
+  border:0;
+  font-weight:bold;
+}
+.info{font-size:13px;color:#64748b}
+.status{
+  border-left:5px solid #94a3b8;
+  padding:12px;
+  margin-top:10px;
+  background:#f8fafc;
+  border-radius:7px;
+}
+.status h3{margin:0 0 7px}
+.normal{border-color:#16a34a}
+.delay{border-color:#e59b17}
+.stop{border-color:#dc2626}
+.unknown{border-color:#94a3b8}
+.tag{font-size:12px;font-weight:bold}
+footer{text-align:center;color:#64748b;font-size:12px;padding:25px}
+</style>
+</head>
+<body>
+
+<header>
+<h1>🚆 全国鉄道運行情報</h1>
+<p>日本全国の鉄道運行状況を確認</p>
+</header>
+
+<main>
+<div class="panel">
+<h3>🔎 路線を検索</h3>
+<input id="search" placeholder="路線名・鉄道会社名を入力">
+<select id="region">
+<option value="">全国すべて</option>
+<option>北海道</option>
+<option>東北</option>
+<option>関東</option>
+<option>甲信越・北陸</option>
+<option>東海</option>
+<option>近畿</option>
+<option>中国</option>
+<option>四国</option>
+<option>九州・沖縄</option>
+</select>
+<button onclick="render()">検索</button>
+</div>
+
+<div class="panel">
+<h3>📡 更新情報</h3>
+<p id="updated" class="info">データ取得待機中</p>
+<p id="connection" class="info">運行情報データ未接続</p>
+<button onclick="loadData()">手動更新</button>
+</div>
+
+<div class="panel">
+<h3>🚉 運行情報一覧</h3>
+<div id="results">
+<p class="info">運行情報を取得しています...</p>
+</div>
+</div>
+</main>
+
+<footer>
+全国鉄道運行情報プロジェクト<br>
+情報は各提供元の発表をご確認ください。
+</footer>
+
+<script>
+let routes=[];
+
+async function loadData(){
+  const connection=document.getElementById("connection");
+  try{
+    const response=await fetch(
+      "data.json?t="+Date.now(),
+      {cache:"no-store"}
+    );
+    if(!response.ok)throw new Error("データ未接続");
+    const data=await response.json();
+    if(!Array.isArray(data))throw new Error("データ形式エラー");
+    routes=data;
+    connection.textContent="データ取得成功";
+  }catch(error){
+    routes=[];
+    connection.textContent="運行情報データ未接続";
+  }
+  document.getElementById("updated").textContent=
+    "最終取得確認："+new Date().toLocaleString("ja-JP");
+  render();
+}
+
+function render(){
+  const word=document.getElementById("search").value.toLowerCase();
+  const region=document.getElementById("region").value;
+  const area=document.getElementById("results");
+  const filtered=routes.filter(r=>
+    (r.name||"").toLowerCase().includes(word)||
+    (r.company||"").toLowerCase().includes(word)
+  ).filter(r=>!region||r.region===region);
+
+  if(filtered.length===0){
+    area.innerHTML="<p class='info'>該当する路線情報はありません。データ未接続の場合は、情報がまだ登録されていません。</p>";
+    return;
+  }
+
+  area.innerHTML="";
+  filtered.forEach(r=>{
+    const status=r.status||"unknown";
+    const labels={
+      normal:"平常運転",
+      delay:"遅延",
+      stop:"運転見合わせ",
+      resumed:"運転再開",
+      unknown:"情報未取得"
+    };
+    const card=document.createElement("div");
+    card.className="status "+(status==="resumed"?"normal":status);
+    const title=document.createElement("h3");
+    title.textContent=r.name||"名称不明";
+    const tag=document.createElement("div");
+    tag.className="tag";
+    tag.textContent=labels[status]||"情報未取得";
+    const detail=document.createElement("p");
+    detail.className="info";
+    detail.textContent=
+      (r.company||"")+
+      " / "+(r.region||"地域不明")+
+      "\n理由："+(r.reason||"未発表")+
+      "\n場所："+(r.location||"未発表")+
+      "\n発生時刻："+(r.time||"未発表");
+    card.append(title,tag,detail);
+    area.appendChild(card);
+  });
+}
+
+document.getElementById("search").addEventListener("input",render);
+document.getElementById("region").addEventListener("change",render);
+
+loadData();
+setInterval(loadData,300000);
+</script>
+</body>
+</html>
