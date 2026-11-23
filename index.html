@@ -1,183 +1,772 @@
 
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#14283d">
 <title>全国鉄道運行情報</title>
 <style>
+:root{
+  --navy:#14283d;
+  --navy2:#203d58;
+  --bg:#f2f5f8;
+  --white:#fff;
+  --text:#203246;
+  --muted:#78899a;
+  --line:#e1e7ed;
+  --green:#16845b;
+  --yellow:#b87918;
+  --red:#c43b46;
+}
 *{box-sizing:border-box}
 body{
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-  background:#eef2f7;
-  color:#172b40;
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",
+  "Noto Sans JP",sans-serif;
 }
 header{
-  background:#14283d;
-  color:white;
-  padding:24px 18px;
+  background:var(--navy);color:white;padding:15px 5%;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:5;
+  box-shadow:0 3px 12px #0002;
 }
-header h1{margin:0;font-size:24px}
-header p{color:#c8d5e2;font-size:13px}
-main{padding:16px;max-width:850px;margin:auto}
-.panel{
-  background:white;
-  padding:16px;
-  border-radius:13px;
-  margin-bottom:14px;
+.brand{display:flex;align-items:center;gap:12px}
+.logo{
+  width:40px;height:40px;border:1px solid #8299ad;
+  border-radius:9px;display:grid;place-items:center;
+  font-weight:900;font-size:20px;
 }
-input,select,button{
-  width:100%;
-  padding:13px;
-  border-radius:8px;
-  border:1px solid #ccd5df;
-  font-size:15px;
-  margin-top:8px;
-  background:white;
+.brand h1{font-size:16px;margin:0}
+.brand small{font-size:9px;color:#bdcbd8;letter-spacing:1px}
+button,select,input{font:inherit}
+button{cursor:pointer}
+.refresh{
+  background:#294761;color:white;border:1px solid #688198;
+  border-radius:8px;padding:9px 13px;
 }
-button{
-  background:#1768a5;
-  color:white;
-  border:0;
-  font-weight:bold;
+main{max-width:1150px;margin:auto;padding:25px 16px 60px}
+.hero{
+  background:linear-gradient(120deg,#14283d,#294b68);
+  color:white;padding:26px;border-radius:15px;margin-bottom:18px;
 }
-.info{font-size:13px;color:#64748b}
-.status{
-  border-left:5px solid #94a3b8;
-  padding:12px;
-  margin-top:10px;
-  background:#f8fafc;
-  border-radius:7px;
+.hero .eyebrow{font-size:10px;letter-spacing:2px;color:#b6c9da}
+.hero h2{font-size:27px;margin:8px 0}
+.hero p{font-size:12px;color:#d2dce5;line-height:1.8}
+.updated{font-size:11px;color:#c4d2df}
+.stats{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:10px;margin-bottom:16px;
 }
-.status h3{margin:0 0 7px}
-.normal{border-color:#16a34a}
-.delay{border-color:#e59b17}
-.stop{border-color:#dc2626}
-.unknown{border-color:#94a3b8}
-.tag{font-size:12px;font-weight:bold}
-footer{text-align:center;color:#64748b;font-size:12px;padding:25px}
+.stat{
+  background:white;border:1px solid var(--line);
+  border-radius:11px;padding:15px;
+}
+.stat span{font-size:11px;color:var(--muted)}
+.stat strong{display:block;font-size:25px;margin-top:5px;color:var(--navy)}
+.stat .yellow{color:var(--yellow)}
+.stat .red{color:var(--red)}
+.notice{
+  background:#e8f0f6;border:1px solid #d2e0eb;
+  border-radius:9px;padding:12px 14px;
+  font-size:11px;line-height:1.8;margin-bottom:20px;
+}
+.notice strong{display:block;color:var(--navy)}
+.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:22px}
+.search{
+  flex:1;min-width:180px;background:white;border:1px solid var(--line);
+  border-radius:9px;padding:11px 13px;outline:none;
+}
+select{
+  background:white;border:1px solid var(--line);
+  border-radius:9px;padding:10px;max-width:200px;
+}
+.section-title{
+  display:flex;align-items:end;justify-content:space-between;
+  gap:10px;margin-bottom:12px;
+}
+.section-title h2{font-size:19px;color:var(--navy);margin:0}
+.section-title p{font-size:11px;color:var(--muted);margin:4px 0}
+.count{font-size:11px;color:var(--muted)}
+.routes{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+.route{
+  background:white;border:1px solid var(--line);
+  border-radius:11px;padding:15px;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:10px;cursor:pointer;transition:.15s;
+}
+.route:hover{border-color:#8ba3b8;transform:translateY(-1px)}
+.route-name{font-size:14px;font-weight:700;overflow-wrap:anywhere}
+.route-company{font-size:10px;color:var(--muted);margin-top:5px}
+.route-right{display:flex;flex-direction:column;align-items:end;gap:6px}
+.badge{
+  border-radius:30px;padding:5px 9px;
+  font-size:10px;font-weight:700;white-space:nowrap;
+}
+.normal{background:#e3f4eb;color:var(--green)}
+.delay{background:#fff1d5;color:var(--yellow)}
+.suspended{background:#fde8e9;color:var(--red)}
+.unknown{background:#edf1f5;color:#66788a}
+.loading,.empty{
+  background:white;border:1px dashed #cbd5df;
+  border-radius:10px;padding:30px;text-align:center;
+  color:var(--muted);font-size:13px;grid-column:1/-1;
+}
+.hidden{display:none!important}
+.history{
+  margin-top:35px;background:white;border:1px solid var(--line);
+  border-radius:11px;padding:15px;
+}
+.history h2{font-size:17px;color:var(--navy);margin:0 0 10px}
+.history-item{
+  border-top:1px solid var(--line);padding:11px 0;
+  font-size:11px;line-height:1.7;
+}
+.history-time{color:var(--muted);margin-right:10px}
+.modal{
+  position:fixed;inset:0;z-index:20;
+  display:grid;place-items:center;padding:15px;
+}
+.backdrop{position:absolute;inset:0;background:#081725aa}
+.modal-card{
+  position:relative;background:white;border-radius:15px;
+  padding:23px;width:min(100%,550px);max-height:85vh;
+  overflow:auto;
+}
+.close{
+  position:absolute;right:14px;top:10px;
+  border:0;background:none;font-size:26px;color:#718096;
+}
+.modal-card h2{color:var(--navy);font-size:22px;margin:0 0 16px}
+.detail-row{
+  display:grid;grid-template-columns:105px 1fr;
+  gap:10px;padding:11px 0;border-top:1px solid var(--line);
+  font-size:12px;line-height:1.6;
+}
+.detail-label{color:var(--muted)}
+.station-list{margin-top:15px}
+.station-list h3{font-size:14px;color:var(--navy)}
+.station{
+  padding:9px 0;border-bottom:1px solid var(--line);
+  font-size:12px;
+}
+footer{
+  background:var(--navy);color:#c3d0dc;
+  padding:20px;text-align:center;font-size:10px;line-height:2;
+}
+@media(max-width:650px){
+  header{padding:12px}
+  .brand h1{font-size:13px}
+  .brand small{font-size:8px}
+  main{padding:17px 12px 45px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .routes{grid-template-columns:1fr}
+  .toolbar>*{max-width:none;flex:1}
+  .search{flex-basis:100%}
+  .hero h2{font-size:23px}
+}
 </style>
 </head>
 <body>
 
 <header>
-<h1>🚆 全国鉄道運行情報</h1>
-<p>日本全国の鉄道運行状況を確認</p>
+  <div class="brand">
+    <div class="logo">鉄</div>
+    <div>
+      <h1>全国鉄道運行情報</h1>
+      <small>ALL JAPAN RAILWAY STATUS</small>
+    </div>
+  </div>
+  <button class="refresh" id="refresh">↻ 更新</button>
 </header>
 
 <main>
-<div class="panel">
-<h3>🔎 路線を検索</h3>
-<input id="search" placeholder="路線名・鉄道会社名を入力">
-<select id="region">
-<option value="">全国すべて</option>
-<option>北海道</option>
-<option>東北</option>
-<option>関東</option>
-<option>甲信越・北陸</option>
-<option>東海</option>
-<option>近畿</option>
-<option>中国</option>
-<option>四国</option>
-<option>九州・沖縄</option>
-</select>
-<button onclick="render()">検索</button>
-</div>
+  <section class="hero">
+    <div class="eyebrow">NATIONAL RAILWAY INFORMATION</div>
+    <h2>全国の運行情報</h2>
+    <p>全国の鉄道路線を検索・確認できます。<br>
+    路線の詳細から駅一覧も確認できます。</p>
+    <div class="updated" id="updated">データ取得待機中</div>
+  </section>
 
-<div class="panel">
-<h3>📡 更新情報</h3>
-<p id="updated" class="info">データ取得待機中</p>
-<p id="connection" class="info">運行情報データ未接続</p>
-<button onclick="loadData()">手動更新</button>
-</div>
+  <section class="stats">
+    <div class="stat"><span>掲載路線</span><strong id="total">—</strong></div>
+    <div class="stat"><span>平常</span><strong id="normalCount">—</strong></div>
+    <div class="stat"><span>遅延</span><strong class="yellow" id="delayCount">—</strong></div>
+    <div class="stat"><span>運転見合わせ</span><strong class="red" id="suspendCount">—</strong></div>
+  </section>
 
-<div class="panel">
-<h3>🚉 運行情報一覧</h3>
-<div id="results">
-<p class="info">運行情報を取得しています...</p>
-</div>
-</div>
+  <div class="notice">
+    <strong>運行情報について</strong>
+    路線一覧はTERARENの公開データを取得しています。
+    運行情報は別のデータ提供元が必要です。
+    未取得の路線は「情報未取得」と表示し、平常とは判定しません。
+  </div>
+
+  <section class="toolbar">
+    <input class="search" id="search" type="search"
+      placeholder="路線名・鉄道会社名で検索">
+    <select id="region">
+      <option value="">全国すべて</option>
+      <option value="北海道">北海道</option>
+      <option value="東北">東北</option>
+      <option value="関東">関東</option>
+      <option value="甲信越">甲信越</option>
+      <option value="東海">東海</option>
+      <option value="北陸">北陸</option>
+      <option value="近畿">近畿</option>
+      <option value="中国">中国</option>
+      <option value="四国">四国</option>
+      <option value="九州">九州</option>
+      <option value="沖縄">沖縄</option>
+      <option value="地域情報なし">地域情報なし</option>
+    </select>
+    <select id="status">
+      <option value="">すべての状況</option>
+      <option value="normal">平常</option>
+      <option value="delay">遅延</option>
+      <option value="suspended">運転見合わせ</option>
+      <option value="unknown">情報未取得</option>
+    </select>
+  </section>
+
+  <div class="section-title">
+    <div>
+      <h2>路線一覧</h2>
+      <p>路線を選択すると詳細を表示します。</p>
+    </div>
+    <span class="count" id="resultCount">読み込み中</span>
+  </div>
+
+  <section class="routes" id="routes">
+    <div class="loading">全国の路線情報を取得しています…</div>
+  </section>
+
+  <section class="history">
+    <h2>運行情報の履歴</h2>
+    <div id="history">
+      <p class="count">取得された運行情報の変化がここに表示されます。</p>
+    </div>
+  </section>
 </main>
 
+<div class="modal hidden" id="modal">
+  <div class="backdrop" id="backdrop"></div>
+  <div class="modal-card">
+    <button class="close" id="close">×</button>
+    <h2 id="modalTitle">路線詳細</h2>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
 <footer>
-全国鉄道運行情報プロジェクト<br>
-情報は各提供元の発表をご確認ください。
+  全国鉄道運行情報<br>
+  路線データ：TERAREN 駅・路線情報API<br>
+  運行情報は提供元のデータ更新状況に依存します。
 </footer>
 
 <script>
-let routes=[];
+"use strict";
 
-async function loadData(){
-  const connection=document.getElementById("connection");
-  try{
-    const response=await fetch(
-      "data.json?t="+Date.now(),
-      {cache:"no-store"}
-    );
-    if(!response.ok)throw new Error("データ未接続");
-    const data=await response.json();
-    if(!Array.isArray(data))throw new Error("データ形式エラー");
-    routes=data;
-    connection.textContent="データ取得成功";
-  }catch(error){
-    routes=[];
-    connection.textContent="運行情報データ未接続";
-  }
-  document.getElementById("updated").textContent=
-    "最終取得確認："+new Date().toLocaleString("ja-JP");
-  render();
+/* ==========================================
+   設定
+========================================== */
+
+// 路線情報：TERAREN公式API
+const LINE_API = "https://train.teraren.com/lines.json";
+
+// 運行情報JSONのURL。
+// 利用可能な公開フィードを用意したらここに設定する。
+// 空欄の場合は、運行状況を「情報未取得」と表示する。
+const STATUS_API = "";
+
+// 5分ごとに自動更新
+const AUTO_REFRESH = 5 * 60 * 1000;
+
+// 履歴の保存件数
+const MAX_HISTORY = 100;
+
+/* ==========================================
+   データ
+========================================== */
+
+let allLines = [];
+let allStatuses = [];
+let historyData = [];
+
+const $ = id => document.getElementById(id);
+
+const statusNames = {
+  normal: "平常",
+  delay: "遅延",
+  suspended: "運転見合わせ",
+  unknown: "情報未取得"
+};
+
+const prefectureRegions = {
+  "北海道":"北海道",
+  "青森県":"東北","岩手県":"東北","宮城県":"東北",
+  "秋田県":"東北","山形県":"東北","福島県":"東北",
+  "茨城県":"関東","栃木県":"関東","群馬県":"関東",
+  "埼玉県":"関東","千葉県":"関東","東京都":"関東",
+  "神奈川県":"関東",
+  "新潟県":"甲信越","山梨県":"甲信越","長野県":"甲信越",
+  "岐阜県":"東海","静岡県":"東海","愛知県":"東海","三重県":"東海",
+  "富山県":"北陸","石川県":"北陸","福井県":"北陸",
+  "滋賀県":"近畿","京都府":"近畿","大阪府":"近畿",
+  "兵庫県":"近畿","奈良県":"近畿","和歌山県":"近畿",
+  "鳥取県":"中国","島根県":"中国","岡山県":"中国",
+  "広島県":"中国","山口県":"中国",
+  "徳島県":"四国","香川県":"四国","愛媛県":"四国","高知県":"四国",
+  "福岡県":"九州","佐賀県":"九州","長崎県":"九州",
+  "熊本県":"九州","大分県":"九州","宮崎県":"九州","鹿児島県":"九州",
+  "沖縄県":"沖縄"
+};
+
+function getRegion(prefecture) {
+  return prefectureRegions[prefecture] || "地域情報なし";
 }
 
-function render(){
-  const word=document.getElementById("search").value.toLowerCase();
-  const region=document.getElementById("region").value;
-  const area=document.getElementById("results");
-  const filtered=routes.filter(r=>
-    (r.name||"").toLowerCase().includes(word)||
-    (r.company||"").toLowerCase().includes(word)
-  ).filter(r=>!region||r.region===region);
+function getValue(obj, keys, fallback="") {
+  for (const key of keys) {
+    if (obj && obj[key] !== undefined &&
+        obj[key] !== null && obj[key] !== "") {
+      return obj[key];
+    }
+  }
+  return fallback;
+}
 
-  if(filtered.length===0){
-    area.innerHTML="<p class='info'>該当する路線情報はありません。データ未接続の場合は、情報がまだ登録されていません。</p>";
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",
+    '"':"&quot;","'":"&#39;"
+  })[char]);
+}
+
+async function getJSON(url) {
+  const response = await fetch(url, {cache:"no-store"});
+  if (!response.ok) {
+    throw new Error("通信エラー：" + response.status);
+  }
+  return response.json();
+}
+
+/* ==========================================
+   路線データ取得
+========================================== */
+
+function normalizeLine(item, index) {
+  const id = String(getValue(
+    item,["id","line_cd","line_id","code"],"line-"+index
+  ));
+
+  const name = String(getValue(
+    item,["line_name","name"],"名称不明"
+  ));
+
+  const company = String(getValue(
+    item,["company_name","operator_name","company","operator"],"事業者情報なし"
+  ));
+
+  const prefecture = String(getValue(
+    item,["prefecture","prefecture_name"],""
+  ));
+
+  return {
+    id,
+    name,
+    company,
+    prefecture,
+    region:getRegion(prefecture),
+    raw:item
+  };
+}
+
+async function loadLines() {
+  const data = await getJSON(LINE_API);
+  const list = Array.isArray(data) ? data :
+    (data.items || data.lines || []);
+
+  if (!Array.isArray(list) || list.length === 0) {
+    throw new Error("路線データが空です");
+  }
+
+  allLines = list.map(normalizeLine);
+}
+
+/* ==========================================
+   運行情報取得
+========================================== */
+
+function normalizeStatus(item) {
+  const raw = String(getValue(
+    item,["status","state","operation_status"],"unknown"
+  )).toLowerCase();
+
+  let status = "unknown";
+
+  if (["normal","平常","平常運転","通常"].includes(raw)) {
+    status = "normal";
+  }
+
+  if (["delay","遅延","遅れ"].includes(raw)) {
+    status = "delay";
+  }
+
+  if (["suspended","suspend","運転見合わせ","運休"].includes(raw)) {
+    status = "suspended";
+  }
+
+  return {
+    lineId:String(getValue(item,["line_id","line_cd","id"],"")),
+    lineName:String(getValue(item,["line_name","name"],"")),
+    status,
+    delay:getValue(item,["delay_minutes","delay_min","minutes"],""),
+    cause:String(getValue(item,["cause","reason"],"情報なし")),
+    section:String(getValue(item,["section","affected_section"],"情報なし")),
+    message:String(getValue(item,["message","detail","description"],"詳細情報はありません")),
+    updated:String(getValue(item,["updated_at","timestamp","updated"],""))
+  };
+}
+
+async function loadStatuses() {
+  allStatuses = [];
+
+  if (!STATUS_API.trim()) return;
+
+  try {
+    const data = await getJSON(STATUS_API);
+    const list = Array.isArray(data) ? data :
+      (data.items || data.statuses || []);
+
+    allStatuses = list.map(normalizeStatus);
+  } catch (error) {
+    console.warn("運行情報取得エラー",error);
+  }
+}
+
+function getStatus(line) {
+  return allStatuses.find(item =>
+    (item.lineId && item.lineId === line.id) ||
+    (item.lineName && item.lineName === line.name)
+  ) || {
+    status:"unknown",
+    delay:"",
+    cause:"情報なし",
+    section:"情報なし",
+    message:"この路線の運行情報は取得できていません。",
+    updated:""
+  };
+}
+
+/* ==========================================
+   履歴
+========================================== */
+
+function loadHistory() {
+  try {
+    historyData = JSON.parse(
+      localStorage.getItem("railwayHistory") || "[]"
+    );
+    if (!Array.isArray(historyData)) historyData = [];
+  } catch {
+    historyData = [];
+  }
+}
+
+function saveHistory() {
+  localStorage.setItem(
+    "railwayHistory",
+    JSON.stringify(historyData.slice(0,MAX_HISTORY))
+  );
+}
+
+function recordChanges() {
+  const now = new Date().toLocaleString("ja-JP");
+
+  allStatuses.forEach(item => {
+    if (!["delay","suspended"].includes(item.status)) return;
+
+    const key = item.lineId || item.lineName;
+    const exists = historyData.some(h =>
+      h.key === key &&
+      h.status === item.status &&
+      h.message === item.message
+    );
+
+    if (!exists) {
+      historyData.unshift({
+        key,
+        status:item.status,
+        time:now,
+        message:
+          (item.lineName || item.lineId) +
+          "：" + statusNames[item.status] +
+          "（" + item.message + "）"
+      });
+    }
+  });
+
+  historyData = historyData.slice(0,MAX_HISTORY);
+  saveHistory();
+  renderHistory();
+}
+
+function renderHistory() {
+  const area = $("history");
+
+  if (!historyData.length) {
+    area.innerHTML =
+      '<p class="count">まだ取得された運行情報の履歴はありません。</p>';
     return;
   }
 
-  area.innerHTML="";
-  filtered.forEach(r=>{
-    const status=r.status||"unknown";
-    const labels={
-      normal:"平常運転",
-      delay:"遅延",
-      stop:"運転見合わせ",
-      resumed:"運転再開",
-      unknown:"情報未取得"
-    };
-    const card=document.createElement("div");
-    card.className="status "+(status==="resumed"?"normal":status);
-    const title=document.createElement("h3");
-    title.textContent=r.name||"名称不明";
-    const tag=document.createElement("div");
-    tag.className="tag";
-    tag.textContent=labels[status]||"情報未取得";
-    const detail=document.createElement("p");
-    detail.className="info";
-    detail.textContent=
-      (r.company||"")+
-      " / "+(r.region||"地域不明")+
-      "\n理由："+(r.reason||"未発表")+
-      "\n場所："+(r.location||"未発表")+
-      "\n発生時刻："+(r.time||"未発表");
-    card.append(title,tag,detail);
-    area.appendChild(card);
+  area.innerHTML = historyData.map(item => `
+    <div class="history-item">
+      <span class="history-time">${escapeHTML(item.time)}</span>
+      ${escapeHTML(item.message)}
+    </div>
+  `).join("");
+}
+
+/* ==========================================
+   統計
+========================================== */
+
+function renderStats() {
+  const counts = {
+    normal:0,delay:0,suspended:0,unknown:0
+  };
+
+  allLines.forEach(line => {
+    counts[getStatus(line).status]++;
+  });
+
+  $("total").textContent = allLines.length.toLocaleString("ja-JP");
+  $("normalCount").textContent = counts.normal.toLocaleString("ja-JP");
+  $("delayCount").textContent = counts.delay.toLocaleString("ja-JP");
+  $("suspendCount").textContent = counts.suspended.toLocaleString("ja-JP");
+}
+
+/* ==========================================
+   路線一覧
+========================================== */
+
+function renderRoutes() {
+  const query = $("search").value.trim().toLowerCase();
+  const region = $("region").value;
+  const filter = $("status").value;
+
+  const filtered = allLines.filter(line => {
+    const status = getStatus(line).status;
+
+    const matchesText =
+      (line.name + " " + line.company).toLowerCase().includes(query);
+
+    const matchesRegion =
+      !region || line.region === region;
+
+    const matchesStatus =
+      !filter || status === filter;
+
+    return matchesText && matchesRegion && matchesStatus;
+  });
+
+  $("resultCount").textContent =
+    filtered.length.toLocaleString("ja-JP") + " 件";
+
+  if (!filtered.length) {
+    $("routes").innerHTML =
+      '<div class="empty">該当する路線がありません。</div>';
+    return;
+  }
+
+  $("routes").innerHTML = filtered.map(line => {
+    const status = getStatus(line);
+    const delay = status.delay !== ""
+      ? `<small>約${escapeHTML(status.delay)}分</small>` : "";
+
+    return `
+      <article class="route" data-id="${escapeHTML(line.id)}">
+        <div>
+          <div class="route-name">${escapeHTML(line.name)}</div>
+          <div class="route-company">
+            ${escapeHTML(line.company)} ・ ${escapeHTML(line.region)}
+          </div>
+        </div>
+        <div class="route-right">
+          <span class="badge ${status.status}">
+            ${statusNames[status.status]}
+          </span>
+          ${delay}
+        </div>
+      </article>
+    `;
+  }).join("");
+
+  document.querySelectorAll(".route").forEach(card => {
+    card.addEventListener("click",() => {
+      showDetails(card.dataset.id);
+    });
   });
 }
 
-document.getElementById("search").addEventListener("input",render);
-document.getElementById("region").addEventListener("change",render);
+/* ==========================================
+   路線詳細・駅一覧
+========================================== */
 
-loadData();
-setInterval(loadData,300000);
+async function showDetails(id) {
+  const line = allLines.find(item => item.id === id);
+  if (!line) return;
+
+  const status = getStatus(line);
+
+  $("modalTitle").textContent = line.name;
+
+  $("modalContent").innerHTML = `
+    <div class="detail-row">
+      <div class="detail-label">鉄道会社</div>
+      <div>${escapeHTML(line.company)}</div>
+    </div>
+    <div class="detail-row">
+      <div class="detail-label">地域</div>
+      <div>${escapeHTML(line.region)}</div>
+    </div>
+    <div class="detail-row">
+      <div class="detail-label">運行状況</div>
+      <div><span class="badge ${status.status}">
+        ${statusNames[status.status]}
+      </span></div>
+    </div>
+    <div class="detail-row">
+      <div class="detail-label">遅延時間</div>
+      <div>${status.delay !== "" ?
+        escapeHTML(status.delay)+"分" : "情報なし"}</div>
+    </div>
+    <div class="detail-row">
+      <div class="detail-label">発生原因</div>
+      <div>${escapeHTML(status.cause)}</div>
+    </div>
+    <div class="detail-row">
+      <div class="detail-label">影響区間</div>
+      <div>${escapeHTML(status.section)}</div>
+    </div>
+    <div class="detail-row">
+      <div class="detail-label">詳細情報</div>
+      <div>${escapeHTML(status.message)}</div>
+    </div>
+    <div class="station-list" id="stationList">
+      <h3>駅一覧</h3>
+      <p class="count">駅情報を取得しています…</p>
+    </div>
+  `;
+
+  $("modal").classList.remove("hidden");
+
+  try {
+    const stations = await getJSON(
+      `https://train.teraren.com/lines/${encodeURIComponent(id)}/stations.json`
+    );
+
+    const list = Array.isArray(stations) ? stations :
+      (stations.items || []);
+
+    $("stationList").innerHTML = `
+      <h3>駅一覧（${list.length}駅）</h3>
+      ${list.map(station => `
+        <div class="station">
+          ${escapeHTML(getValue(
+            station,["station_name","name"],"名称不明"
+          ))}駅
+        </div>
+      `).join("") || '<p class="count">駅情報がありません。</p>'}
+    `;
+  } catch {
+    $("stationList").innerHTML =
+      '<h3>駅一覧</h3><p class="count">駅情報を取得できませんでした。</p>';
+  }
+}
+
+/* ==========================================
+   更新処理
+========================================== */
+
+let updating = false;
+
+async function updateAll() {
+  if (updating) return;
+
+  updating = true;
+  $("refresh").disabled = true;
+  $("refresh").textContent = "更新中…";
+
+  try {
+    await loadLines();
+    await loadStatuses();
+
+    renderStats();
+    renderRoutes();
+    recordChanges();
+
+    $("updated").textContent =
+      "最終更新：" + new Date().toLocaleString("ja-JP");
+
+  } catch (error) {
+    console.error(error);
+    $("routes").innerHTML = `
+      <div class="loading">
+        路線情報を取得できませんでした。<br>
+        インターネット接続を確認して再度更新してください。<br>
+        ${escapeHTML(error.message)}
+      </div>
+    `;
+    $("updated").textContent = "データ取得エラー";
+
+  } finally {
+    updating = false;
+    $("refresh").disabled = false;
+    $("refresh").textContent = "↻ 更新";
+  }
+}
+
+/* ==========================================
+   イベント
+========================================== */
+
+$("refresh").addEventListener("click",updateAll);
+$("search").addEventListener("input",renderRoutes);
+$("region").addEventListener("change",renderRoutes);
+$("status").addEventListener("change",renderRoutes);
+
+$("close").addEventListener("click",() => {
+  $("modal").classList.add("hidden");
+});
+
+$("backdrop").addEventListener("click",() => {
+  $("modal").classList.add("hidden");
+});
+
+document.addEventListener("keydown",event => {
+  if (event.key === "Escape") {
+    $("modal").classList.add("hidden");
+  }
+});
+
+/* ==========================================
+   起動
+========================================== */
+
+loadHistory();
+renderHistory();
+updateAll();
+
+setInterval(updateAll,AUTO_REFRESH);
+
 </script>
 </body>
 </html>
