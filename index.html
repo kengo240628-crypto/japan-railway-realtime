@@ -1,5 +1,5 @@
 
-
+  
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -7,10 +7,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#14283d">
 <title>全国鉄道運行情報</title>
+
 <style>
 :root{
   --navy:#14283d;
-  --navy2:#203d58;
+  --navy2:#294b68;
   --bg:#f2f5f8;
   --white:#fff;
   --text:#203246;
@@ -23,14 +24,12 @@
 *{box-sizing:border-box}
 body{
   margin:0;background:var(--bg);color:var(--text);
-  font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",
-  "Noto Sans JP",sans-serif;
+  font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue","Noto Sans JP",sans-serif;
 }
 header{
   background:var(--navy);color:white;padding:15px 5%;
   display:flex;align-items:center;justify-content:space-between;
-  position:sticky;top:0;z-index:5;
-  box-shadow:0 3px 12px #0002;
+  position:sticky;top:0;z-index:5;box-shadow:0 3px 12px #0002;
 }
 .brand{display:flex;align-items:center;gap:12px}
 .logo{
@@ -40,12 +39,13 @@ header{
 }
 .brand h1{font-size:16px;margin:0}
 .brand small{font-size:9px;color:#bdcbd8;letter-spacing:1px}
-button,select,input{font:inherit}
+button,input,select{font:inherit}
 button{cursor:pointer}
 .refresh{
   background:#294761;color:white;border:1px solid #688198;
   border-radius:8px;padding:9px 13px;
 }
+.refresh:disabled{opacity:.6;cursor:wait}
 main{max-width:1150px;margin:auto;padding:25px 16px 60px}
 .hero{
   background:linear-gradient(120deg,#14283d,#294b68);
@@ -78,6 +78,7 @@ main{max-width:1150px;margin:auto;padding:25px 16px 60px}
   flex:1;min-width:180px;background:white;border:1px solid var(--line);
   border-radius:9px;padding:11px 13px;outline:none;
 }
+.search:focus{border-color:#6e91ad}
 select{
   background:white;border:1px solid var(--line);
   border-radius:9px;padding:10px;max-width:200px;
@@ -97,9 +98,10 @@ select{
   background:white;border:1px solid var(--line);
   border-radius:11px;padding:15px;
   display:flex;align-items:center;justify-content:space-between;
-  gap:10px;cursor:pointer;transition:.15s;
+  gap:10px;min-width:0;
 }
-.route:hover{border-color:#8ba3b8;transform:translateY(-1px)}
+.route.clickable{cursor:pointer;transition:.15s}
+.route.clickable:hover{border-color:#8ba3b8;transform:translateY(-1px)}
 .route-name{font-size:14px;font-weight:700;overflow-wrap:anywhere}
 .route-company{font-size:10px;color:var(--muted);margin-top:5px}
 .route-right{display:flex;flex-direction:column;align-items:end;gap:6px}
@@ -116,7 +118,6 @@ select{
   border-radius:10px;padding:30px;text-align:center;
   color:var(--muted);font-size:13px;grid-column:1/-1;
 }
-.hidden{display:none!important}
 .history{
   margin-top:35px;background:white;border:1px solid var(--line);
   border-radius:11px;padding:15px;
@@ -134,14 +135,13 @@ select{
 .backdrop{position:absolute;inset:0;background:#081725aa}
 .modal-card{
   position:relative;background:white;border-radius:15px;
-  padding:23px;width:min(100%,550px);max-height:85vh;
-  overflow:auto;
+  padding:23px;width:min(100%,550px);max-height:85vh;overflow:auto;
 }
 .close{
   position:absolute;right:14px;top:10px;
   border:0;background:none;font-size:26px;color:#718096;
 }
-.modal-card h2{color:var(--navy);font-size:22px;margin:0 0 16px}
+.modal-card h2{color:var(--navy);font-size:22px;margin:0 35px 16px 0}
 .detail-row{
   display:grid;grid-template-columns:105px 1fr;
   gap:10px;padding:11px 0;border-top:1px solid var(--line);
@@ -154,6 +154,7 @@ select{
   padding:9px 0;border-bottom:1px solid var(--line);
   font-size:12px;
 }
+.hidden{display:none!important}
 footer{
   background:var(--navy);color:#c3d0dc;
   padding:20px;text-align:center;font-size:10px;line-height:2;
@@ -171,6 +172,7 @@ footer{
 }
 </style>
 </head>
+
 <body>
 
 <header>
@@ -185,55 +187,92 @@ footer{
 </header>
 
 <main>
-  <section class="hero">
-    <div class="eyebrow">NATIONAL RAILWAY INFORMATION</div>
-    <h2>全国の運行情報</h2>
-    <p>全国の鉄道路線を検索・確認できます。<br>
-    路線の詳細から駅一覧も確認できます。</p>
-    <div class="updated" id="updated">データ取得待機中</div>
-  </section>
 
-  <section class="stats">
-    <div class="stat"><span>掲載路線</span><strong id="total">—</strong></div>
-    <div class="stat"><span>平常</span><strong id="normalCount">—</strong></div>
-    <div class="stat"><span>遅延</span><strong class="yellow" id="delayCount">—</strong></div>
-    <div class="stat"><span>運転見合わせ</span><strong class="red" id="suspendCount">—</strong></div>
-  </section>
+<section class="hero">
+  <div class="eyebrow">NATIONAL RAILWAY INFORMATION</div>
+  <h2>全国の運行情報</h2>
+  <p>
+    全国の鉄道路線・駅を検索できます。<br>
+    路線の詳細から駅一覧も確認できます。
+  </p>
+  <div class="updated" id="updated">データ取得待機中</div>
+</section>
 
-  <div class="notice">
-    <strong>運行情報について</strong>
-    路線一覧はTERARENの公開データを取得しています。
-    運行情報は別のデータ提供元が必要です。
-    未取得の路線は「情報未取得」と表示し、平常とは判定しません。
+<section class="stats">
+  <div class="stat">
+    <span>掲載路線</span>
+    <strong id="total">—</strong>
+  </div>
+  <div class="stat">
+    <span>平常</span>
+    <strong id="normalCount">—</strong>
+  </div>
+  <div class="stat">
+    <span>遅延</span>
+    <strong class="yellow" id="delayCount">—</strong>
+  </div>
+  <div class="stat">
+    <span>運転見合わせ</span>
+    <strong class="red" id="suspendCount">—</strong>
+  </div>
+</section>
+
+<div class="notice">
+  <strong>運行情報について</strong>
+  駅・路線データはTERARENの公開APIから取得しています。
+  現在、リアルタイムの運行情報データは接続されていません。
+  そのため、運行状況は「情報未取得」と表示します。
+</div>
+
+<section class="toolbar">
+  <input
+    class="search"
+    id="search"
+    type="search"
+    placeholder="駅名・路線名・鉄道会社名で検索"
+    autocomplete="off"
+  >
+
+  <select id="region">
+    <option value="">全国すべて</option>
+    <option value="北海道">北海道</option>
+    <option value="東北">東北</option>
+    <option value="関東">関東</option>
+    <option value="甲信越">甲信越</option>
+    <option value="東海">東海</option>
+    <option value="北陸">北陸</option>
+    <option value="近畿">近畿</option>
+    <option value="中国">中国</option>
+    <option value="四国">四国</option>
+    <option value="九州">九州</option>
+    <option value="沖縄">沖縄</option>
+    <option value="地域情報なし">地域情報なし</option>
+  </select>
+
+  <select id="status">
+    <option value="">すべての状況</option>
+    <option value="normal">平常</option>
+    <option value="delay">遅延</option>
+    <option value="suspended">運転見合わせ</option>
+    <option value="unknown">情報未取得</option>
+  </select>
+</section>
+
+<section>
+  <div class="section-title">
+    <div>
+      <h2>駅名検索結果</h2>
+      <p>「東京」「新宿」など駅名を入力してください。</p>
+    </div>
+    <span class="count" id="stationCount"></span>
   </div>
 
-  <section class="toolbar">
-    <input class="search" id="search" type="search"
-      placeholder="路線名・鉄道会社名で検索">
-    <select id="region">
-      <option value="">全国すべて</option>
-      <option value="北海道">北海道</option>
-      <option value="東北">東北</option>
-      <option value="関東">関東</option>
-      <option value="甲信越">甲信越</option>
-      <option value="東海">東海</option>
-      <option value="北陸">北陸</option>
-      <option value="近畿">近畿</option>
-      <option value="中国">中国</option>
-      <option value="四国">四国</option>
-      <option value="九州">九州</option>
-      <option value="沖縄">沖縄</option>
-      <option value="地域情報なし">地域情報なし</option>
-    </select>
-    <select id="status">
-      <option value="">すべての状況</option>
-      <option value="normal">平常</option>
-      <option value="delay">遅延</option>
-      <option value="suspended">運転見合わせ</option>
-      <option value="unknown">情報未取得</option>
-    </select>
-  </section>
+  <div class="routes" id="stationResults">
+    <div class="empty">駅名を入力すると検索できます。</div>
+  </div>
+</section>
 
+<section style="margin-top:30px">
   <div class="section-title">
     <div>
       <h2>路線一覧</h2>
@@ -242,16 +281,18 @@ footer{
     <span class="count" id="resultCount">読み込み中</span>
   </div>
 
-  <section class="routes" id="routes">
+  <div class="routes" id="routes">
     <div class="loading">全国の路線情報を取得しています…</div>
-  </section>
+  </div>
+</section>
 
-  <section class="history">
-    <h2>運行情報の履歴</h2>
-    <div id="history">
-      <p class="count">取得された運行情報の変化がここに表示されます。</p>
-    </div>
-  </section>
+<section class="history">
+  <h2>運行情報の履歴</h2>
+  <div id="history">
+    <p class="count">取得された運行情報の変化がここに表示されます。</p>
+  </div>
+</section>
+
 </main>
 
 <div class="modal hidden" id="modal">
@@ -265,7 +306,7 @@ footer{
 
 <footer>
   全国鉄道運行情報<br>
-  路線データ：TERAREN 駅・路線情報API<br>
+  駅・路線データ：TERAREN 駅・路線情報API<br>
   運行情報は提供元のデータ更新状況に依存します。
 </footer>
 
@@ -276,18 +317,13 @@ footer{
    設定
 ========================================== */
 
-// 路線情報：TERAREN公式API
-const LINE_API = "https://train.teraren.com/lines.json";
+const LINE_API =
+  "https://train.teraren.com/lines.json";
 
-// 運行情報JSONのURL。
-// 利用可能な公開フィードを用意したらここに設定する。
-// 空欄の場合は、運行状況を「情報未取得」と表示する。
-const STATUS_API = "";
+const STATION_SEARCH_API =
+  "https://train.teraren.com/stations.json";
 
-// 5分ごとに自動更新
 const AUTO_REFRESH = 5 * 60 * 1000;
-
-// 履歴の保存件数
 const MAX_HISTORY = 100;
 
 /* ==========================================
@@ -298,13 +334,17 @@ let allLines = [];
 let allStatuses = [];
 let historyData = [];
 
+let stationSearchTimer = null;
+let stationSearchRequest = 0;
+let updating = false;
+
 const $ = id => document.getElementById(id);
 
 const statusNames = {
-  normal: "平常",
-  delay: "遅延",
-  suspended: "運転見合わせ",
-  unknown: "情報未取得"
+  normal:"平常",
+  delay:"遅延",
+  suspended:"運転見合わせ",
+  unknown:"情報未取得"
 };
 
 const prefectureRegions = {
@@ -323,8 +363,8 @@ const prefectureRegions = {
   "広島県":"中国","山口県":"中国",
   "徳島県":"四国","香川県":"四国","愛媛県":"四国","高知県":"四国",
   "福岡県":"九州","佐賀県":"九州","長崎県":"九州",
-  "熊本県":"九州","大分県":"九州","宮崎県":"九州","鹿児島県":"九州",
-  "沖縄県":"沖縄"
+  "熊本県":"九州","大分県":"九州","宮崎県":"九州",
+  "鹿児島県":"九州","沖縄県":"沖縄"
 };
 
 function getRegion(prefecture) {
@@ -343,17 +383,22 @@ function getValue(obj, keys, fallback="") {
 
 function escapeHTML(value) {
   return String(value ?? "").replace(/[&<>"']/g, char => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",
-    '"':"&quot;","'":"&#39;"
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#39;"
   })[char]);
 }
 
 async function getJSON(url) {
   const response = await fetch(url, {cache:"no-store"});
+
   if (!response.ok) {
     throw new Error("通信エラー：" + response.status);
   }
-  return response.json();
+
+  return await response.json();
 }
 
 /* ==========================================
@@ -361,20 +406,29 @@ async function getJSON(url) {
 ========================================== */
 
 function normalizeLine(item, index) {
+  // TERARENの路線コード line_cd を優先して使用
   const id = String(getValue(
-    item,["id","line_cd","line_id","code"],"line-"+index
+    item,
+    ["line_cd","id","line_id","code"],
+    "line-" + index
   ));
 
   const name = String(getValue(
-    item,["line_name","name"],"名称不明"
+    item,
+    ["line_name","name"],
+    "名称不明"
   ));
 
   const company = String(getValue(
-    item,["company_name","operator_name","company","operator"],"事業者情報なし"
+    item,
+    ["company_name","operator_name","company","operator"],
+    "事業者情報なし"
   ));
 
   const prefecture = String(getValue(
-    item,["prefecture","prefecture_name"],""
+    item,
+    ["prefecture","prefecture_name"],
+    ""
   ));
 
   return {
@@ -389,8 +443,10 @@ function normalizeLine(item, index) {
 
 async function loadLines() {
   const data = await getJSON(LINE_API);
-  const list = Array.isArray(data) ? data :
-    (data.items || data.lines || []);
+
+  const list = Array.isArray(data)
+    ? data
+    : (data.items || data.lines || []);
 
   if (!Array.isArray(list) || list.length === 0) {
     throw new Error("路線データが空です");
@@ -400,54 +456,14 @@ async function loadLines() {
 }
 
 /* ==========================================
-   運行情報取得
+   運行情報
 ========================================== */
 
-function normalizeStatus(item) {
-  const raw = String(getValue(
-    item,["status","state","operation_status"],"unknown"
-  )).toLowerCase();
-
-  let status = "unknown";
-
-  if (["normal","平常","平常運転","通常"].includes(raw)) {
-    status = "normal";
-  }
-
-  if (["delay","遅延","遅れ"].includes(raw)) {
-    status = "delay";
-  }
-
-  if (["suspended","suspend","運転見合わせ","運休"].includes(raw)) {
-    status = "suspended";
-  }
-
-  return {
-    lineId:String(getValue(item,["line_id","line_cd","id"],"")),
-    lineName:String(getValue(item,["line_name","name"],"")),
-    status,
-    delay:getValue(item,["delay_minutes","delay_min","minutes"],""),
-    cause:String(getValue(item,["cause","reason"],"情報なし")),
-    section:String(getValue(item,["section","affected_section"],"情報なし")),
-    message:String(getValue(item,["message","detail","description"],"詳細情報はありません")),
-    updated:String(getValue(item,["updated_at","timestamp","updated"],""))
-  };
-}
+// 現在はリアルタイム運行情報API未接続。
+// 誤って平常と判定しないよう、すべて情報未取得にする。
 
 async function loadStatuses() {
   allStatuses = [];
-
-  if (!STATUS_API.trim()) return;
-
-  try {
-    const data = await getJSON(STATUS_API);
-    const list = Array.isArray(data) ? data :
-      (data.items || data.statuses || []);
-
-    allStatuses = list.map(normalizeStatus);
-  } catch (error) {
-    console.warn("運行情報取得エラー",error);
-  }
 }
 
 function getStatus(line) {
@@ -473,47 +489,28 @@ function loadHistory() {
     historyData = JSON.parse(
       localStorage.getItem("railwayHistory") || "[]"
     );
-    if (!Array.isArray(historyData)) historyData = [];
+
+    if (!Array.isArray(historyData)) {
+      historyData = [];
+    }
   } catch {
     historyData = [];
   }
 }
 
 function saveHistory() {
-  localStorage.setItem(
-    "railwayHistory",
-    JSON.stringify(historyData.slice(0,MAX_HISTORY))
-  );
+  try {
+    localStorage.setItem(
+      "railwayHistory",
+      JSON.stringify(historyData.slice(0,MAX_HISTORY))
+    );
+  } catch (error) {
+    console.warn("履歴保存エラー",error);
+  }
 }
 
 function recordChanges() {
-  const now = new Date().toLocaleString("ja-JP");
-
-  allStatuses.forEach(item => {
-    if (!["delay","suspended"].includes(item.status)) return;
-
-    const key = item.lineId || item.lineName;
-    const exists = historyData.some(h =>
-      h.key === key &&
-      h.status === item.status &&
-      h.message === item.message
-    );
-
-    if (!exists) {
-      historyData.unshift({
-        key,
-        status:item.status,
-        time:now,
-        message:
-          (item.lineName || item.lineId) +
-          "：" + statusNames[item.status] +
-          "（" + item.message + "）"
-      });
-    }
-  });
-
-  historyData = historyData.slice(0,MAX_HISTORY);
-  saveHistory();
+  // 運行情報API接続後に履歴記録を有効化する。
   renderHistory();
 }
 
@@ -522,7 +519,7 @@ function renderHistory() {
 
   if (!historyData.length) {
     area.innerHTML =
-      '<p class="count">まだ取得された運行情報の履歴はありません。</p>';
+      '<p class="count">まだ運行情報の履歴はありません。運行情報API接続後に記録されます。</p>';
     return;
   }
 
@@ -540,21 +537,31 @@ function renderHistory() {
 
 function renderStats() {
   const counts = {
-    normal:0,delay:0,suspended:0,unknown:0
+    normal:0,
+    delay:0,
+    suspended:0,
+    unknown:0
   };
 
   allLines.forEach(line => {
     counts[getStatus(line).status]++;
   });
 
-  $("total").textContent = allLines.length.toLocaleString("ja-JP");
-  $("normalCount").textContent = counts.normal.toLocaleString("ja-JP");
-  $("delayCount").textContent = counts.delay.toLocaleString("ja-JP");
-  $("suspendCount").textContent = counts.suspended.toLocaleString("ja-JP");
+  $("total").textContent =
+    allLines.length.toLocaleString("ja-JP");
+
+  $("normalCount").textContent =
+    counts.normal.toLocaleString("ja-JP");
+
+  $("delayCount").textContent =
+    counts.delay.toLocaleString("ja-JP");
+
+  $("suspendCount").textContent =
+    counts.suspended.toLocaleString("ja-JP");
 }
 
 /* ==========================================
-   路線一覧
+   路線検索・一覧
 ========================================== */
 
 function renderRoutes() {
@@ -566,7 +573,9 @@ function renderRoutes() {
     const status = getStatus(line).status;
 
     const matchesText =
-      (line.name + " " + line.company).toLowerCase().includes(query);
+      (line.name + " " + line.company)
+        .toLowerCase()
+        .includes(query);
 
     const matchesRegion =
       !region || line.region === region;
@@ -588,32 +597,179 @@ function renderRoutes() {
 
   $("routes").innerHTML = filtered.map(line => {
     const status = getStatus(line);
-    const delay = status.delay !== ""
-      ? `<small>約${escapeHTML(status.delay)}分</small>` : "";
 
     return `
-      <article class="route" data-id="${escapeHTML(line.id)}">
+      <article class="route clickable"
+        data-id="${escapeHTML(line.id)}">
+
         <div>
-          <div class="route-name">${escapeHTML(line.name)}</div>
+          <div class="route-name">
+            ${escapeHTML(line.name)}
+          </div>
           <div class="route-company">
-            ${escapeHTML(line.company)} ・ ${escapeHTML(line.region)}
+            ${escapeHTML(line.company)}
+            ・${escapeHTML(line.region)}
           </div>
         </div>
+
         <div class="route-right">
           <span class="badge ${status.status}">
             ${statusNames[status.status]}
           </span>
-          ${delay}
         </div>
       </article>
     `;
   }).join("");
 
-  document.querySelectorAll(".route").forEach(card => {
+  document.querySelectorAll(".route[data-id]").forEach(card => {
     card.addEventListener("click",() => {
       showDetails(card.dataset.id);
     });
   });
+}
+
+/* ==========================================
+   駅名検索
+========================================== */
+
+async function searchStations(keyword) {
+  const url = new URL(STATION_SEARCH_API);
+
+  url.searchParams.set("name",keyword);
+
+  const data = await getJSON(url.toString());
+
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data.items)) return data.items;
+  if (Array.isArray(data.stations)) return data.stations;
+
+  return [];
+}
+
+function renderStationResults(list) {
+  $("stationCount").textContent =
+    list.length.toLocaleString("ja-JP") + " 件";
+
+  if (!list.length) {
+    $("stationResults").innerHTML =
+      '<div class="empty">該当する駅がありません。</div>';
+    return;
+  }
+
+  $("stationResults").innerHTML = list.map(station => {
+    const name = getValue(
+      station,
+      ["station_name","name"],
+      "名称不明"
+    );
+
+    const lineName = getValue(
+      station,
+      ["line_name"],
+      "路線情報なし"
+    );
+
+    const company = getValue(
+      station,
+      ["company_name","operator_name"],
+      ""
+    );
+
+    const lineId = String(getValue(
+      station,
+      ["line_cd","line_id","lineId"],
+      ""
+    ));
+
+    const stationCode = String(getValue(
+      station,
+      ["station_cd","station_id"],
+      ""
+    ));
+
+    const relatedLine = allLines.find(line =>
+      (lineId && line.id === lineId) ||
+      (lineName && line.name === lineName)
+    );
+
+    return `
+      <article class="route">
+        <div>
+          <div class="route-name">
+            ${escapeHTML(name)}駅
+          </div>
+          <div class="route-company">
+            ${escapeHTML(lineName)}
+            ${company ? "・" + escapeHTML(company) : ""}
+          </div>
+        </div>
+
+        ${
+          relatedLine
+          ? `<button class="refresh"
+               data-station-line-id="${escapeHTML(relatedLine.id)}">
+               路線詳細
+             </button>`
+          : `<span class="badge unknown">駅情報</span>`
+        }
+      </article>
+    `;
+  }).join("");
+
+  document.querySelectorAll("[data-station-line-id]")
+    .forEach(button => {
+      button.addEventListener("click",() => {
+        showDetails(button.dataset.stationLineId);
+      });
+    });
+}
+
+async function handleStationSearch(keyword) {
+  const requestId = ++stationSearchRequest;
+
+  if (!keyword) {
+    $("stationCount").textContent = "";
+    $("stationResults").innerHTML =
+      '<div class="empty">駅名を入力すると検索できます。</div>';
+    return;
+  }
+
+  $("stationResults").innerHTML =
+    '<div class="loading">駅を検索しています…</div>';
+
+  try {
+    const results = await searchStations(keyword);
+
+    // 古い検索結果で新しい検索結果を上書きしない
+    if (requestId !== stationSearchRequest) return;
+
+    renderStationResults(results);
+
+  } catch (error) {
+    if (requestId !== stationSearchRequest) return;
+
+    $("stationCount").textContent = "";
+    $("stationResults").innerHTML = `
+      <div class="empty">
+        駅名検索に失敗しました。<br>
+        少し時間をおいて再度お試しください。
+      </div>
+    `;
+
+    console.error("駅名検索エラー",error);
+  }
+}
+
+function onSearchInput() {
+  renderRoutes();
+
+  clearTimeout(stationSearchTimer);
+
+  const keyword = $("search").value.trim();
+
+  stationSearchTimer = setTimeout(() => {
+    handleStationSearch(keyword);
+  },400);
 }
 
 /* ==========================================
@@ -633,33 +789,41 @@ async function showDetails(id) {
       <div class="detail-label">鉄道会社</div>
       <div>${escapeHTML(line.company)}</div>
     </div>
+
     <div class="detail-row">
       <div class="detail-label">地域</div>
       <div>${escapeHTML(line.region)}</div>
     </div>
+
     <div class="detail-row">
       <div class="detail-label">運行状況</div>
-      <div><span class="badge ${status.status}">
-        ${statusNames[status.status]}
-      </span></div>
+      <div>
+        <span class="badge ${status.status}">
+          ${statusNames[status.status]}
+        </span>
+      </div>
     </div>
+
     <div class="detail-row">
       <div class="detail-label">遅延時間</div>
-      <div>${status.delay !== "" ?
-        escapeHTML(status.delay)+"分" : "情報なし"}</div>
+      <div>情報なし</div>
     </div>
+
     <div class="detail-row">
       <div class="detail-label">発生原因</div>
       <div>${escapeHTML(status.cause)}</div>
     </div>
+
     <div class="detail-row">
       <div class="detail-label">影響区間</div>
       <div>${escapeHTML(status.section)}</div>
     </div>
+
     <div class="detail-row">
       <div class="detail-label">詳細情報</div>
       <div>${escapeHTML(status.message)}</div>
     </div>
+
     <div class="station-list" id="stationList">
       <h3>駅一覧</h3>
       <p class="count">駅情報を取得しています…</p>
@@ -670,23 +834,38 @@ async function showDetails(id) {
 
   try {
     const stations = await getJSON(
-      `https://train.teraren.com/lines/${encodeURIComponent(id)}/stations.json`
+      "https://train.teraren.com/lines/" +
+      encodeURIComponent(id) +
+      "/stations.json"
     );
 
-    const list = Array.isArray(stations) ? stations :
-      (stations.items || []);
+    const list = Array.isArray(stations)
+      ? stations
+      : (stations.items || stations.stations || []);
+
+    const stationHTML = list.map(station => {
+      const name = getValue(
+        station,
+        ["station_name","name"],
+        "名称不明"
+      );
+
+      return `
+        <div class="station">
+          ${escapeHTML(name)}駅
+        </div>
+      `;
+    }).join("");
 
     $("stationList").innerHTML = `
       <h3>駅一覧（${list.length}駅）</h3>
-      ${list.map(station => `
-        <div class="station">
-          ${escapeHTML(getValue(
-            station,["station_name","name"],"名称不明"
-          ))}駅
-        </div>
-      `).join("") || '<p class="count">駅情報がありません。</p>'}
+      ${stationHTML ||
+        '<p class="count">駅情報がありません。</p>'}
     `;
-  } catch {
+
+  } catch (error) {
+    console.error("駅一覧取得エラー",error);
+
     $("stationList").innerHTML =
       '<h3>駅一覧</h3><p class="count">駅情報を取得できませんでした。</p>';
   }
@@ -696,12 +875,11 @@ async function showDetails(id) {
    更新処理
 ========================================== */
 
-let updating = false;
-
 async function updateAll() {
   if (updating) return;
 
   updating = true;
+
   $("refresh").disabled = true;
   $("refresh").textContent = "更新中…";
 
@@ -714,10 +892,12 @@ async function updateAll() {
     recordChanges();
 
     $("updated").textContent =
-      "最終更新：" + new Date().toLocaleString("ja-JP");
+      "最終更新：" +
+      new Date().toLocaleString("ja-JP");
 
   } catch (error) {
     console.error(error);
+
     $("routes").innerHTML = `
       <div class="loading">
         路線情報を取得できませんでした。<br>
@@ -725,6 +905,7 @@ async function updateAll() {
         ${escapeHTML(error.message)}
       </div>
     `;
+
     $("updated").textContent = "データ取得エラー";
 
   } finally {
@@ -739,7 +920,9 @@ async function updateAll() {
 ========================================== */
 
 $("refresh").addEventListener("click",updateAll);
-$("search").addEventListener("input",renderRoutes);
+
+$("search").addEventListener("input",onSearchInput);
+
 $("region").addEventListener("change",renderRoutes);
 $("status").addEventListener("change",renderRoutes);
 
